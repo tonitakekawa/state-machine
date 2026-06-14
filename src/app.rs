@@ -8,6 +8,7 @@ const ARROW_SIZE: f32 = 10.0;
 #[derive(Debug, Clone, PartialEq)]
 enum Tool {
     Select,
+    AddState,
     AddTransition,
 }
 
@@ -33,7 +34,6 @@ pub struct FsmApp {
     event_input: String,
     // transition drawing
     transition_from: Option<String>,
-    drag_start: Option<Pos2>,
     drag_pos: Option<Pos2>,
     // file
     current_file: Option<PathBuf>,
@@ -88,7 +88,6 @@ impl FsmApp {
             runner: None,
             event_input: String::new(),
             transition_from: None,
-            drag_start: None,
             drag_pos: None,
             current_file: None,
             status_message: None,
@@ -151,6 +150,12 @@ impl FsmApp {
         let n = self.fsm.states.len() as f32;
         let x = 140.0 + (n % 6.0) * 110.0;
         let y = 120.0 + (n / 6.0).floor() * 110.0;
+        let id = self.fsm.add_state("状態".to_string(), x, y);
+        self.selection = Selection::State(id);
+    }
+
+    /// 指定座標（キャンバスローカル）に状態を追加し、選択する（画面タッチ用）。
+    fn add_state_at(&mut self, x: f32, y: f32) {
         let id = self.fsm.add_state("状態".to_string(), x, y);
         self.selection = Selection::State(id);
     }
@@ -266,10 +271,20 @@ impl FsmApp {
             let local = from_screen(pointer_pos);
 
             match self.tool {
+                Tool::AddState => {
+                    // 空いている場所をタッチしたら、その位置に状態を追加。
+                    // 既存の状態の上をタッチした場合は選択のみ（誤って重ねないように）。
+                    if response.clicked() {
+                        if let Some(id) = self.state_at(local) {
+                            self.selection = Selection::State(id);
+                        } else {
+                            self.add_state_at(local.x, local.y);
+                        }
+                    }
+                }
                 Tool::AddTransition => {
                     if response.drag_started() {
                         self.transition_from = self.state_at(local);
-                        self.drag_start = Some(local);
                     }
                     if response.dragged() {
                         self.drag_pos = Some(pointer_pos);
@@ -662,6 +677,7 @@ impl eframe::App for FsmApp {
             egui::TopBottomPanel::top("toolbar").show(ctx, |ui| {
                 ui.horizontal(|ui| {
                     ui.selectable_value(&mut self.tool, Tool::Select, "選択");
+                    ui.selectable_value(&mut self.tool, Tool::AddState, "状態追加(タッチ)");
                     ui.selectable_value(&mut self.tool, Tool::AddTransition, "遷移追加");
                     ui.separator();
                     if ui.button("状態追加").clicked() {
@@ -691,11 +707,7 @@ impl eframe::App for FsmApp {
 
         // canvas
         egui::CentralPanel::default().show(ctx, |ui| {
-            if self.mode == Mode::Edit {
-                self.draw_canvas(ui);
-            } else {
-                self.draw_canvas(ui);
-            }
+            self.draw_canvas(ui);
         });
     }
 }
