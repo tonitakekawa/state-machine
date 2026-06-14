@@ -1,0 +1,12 @@
+[package]
+name = "fsm_tool"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+eframe = "0.31"
+egui = "0.31"
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+uuid = { version = "1", features = ["v4"] }
+rfd = "0.15"
