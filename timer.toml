@@ -1,0 +1,81 @@
+variables = []
+
+[[states]]
+id = "idle"
+label = "待機"
+x = 160.0
+y = 220.0
+initial = true
+accepting = false
+
+[[states]]
+id = "running"
+label = "計測中"
+x = 420.0
+y = 220.0
+initial = false
+accepting = false
+
+[[states]]
+id = "done"
+label = "完了"
+x = 680.0
+y = 220.0
+initial = false
+accepting = true
+
+[[transitions]]
+id = "t_start"
+from = "idle"
+to = "running"
+event = "start"
+actions = []
+
+[[transitions]]
+id = "t_count"
+from = "running"
+to = "done"
+event = ""
+
+[[transitions.actions]]
+Message = "3"
+
+[[transitions.actions]]
+
+[transitions.actions.Wait]
+duration = 1.0
+unit = "Sec"
+
+[[transitions.actions]]
+Message = "2"
+
+[[transitions.actions]]
+
+[transitions.actions.Wait]
+duration = 1.0
+unit = "Sec"
+
+[[transitions.actions]]
+Message = "1"
+
+[[transitions.actions]]
+
+[transitions.actions.Wait]
+duration = 1.0
+unit = "Sec"
+
+[[transitions.actions]]
+Message = "時間です！"
+
+[[transitions.actions]]
+
+[transitions.actions.Wait]
+duration = 3.0
+unit = "Sec"
+
+[[transitions]]
+id = "t_reset"
+from = "done"
+to = "idle"
+event = "reset"
+actions = []
